@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="fr-FR">
+<head>
+<title>Lauretta</title>
+<!-- TODO: Make it local -->
+<script src="http://code.jquery.com/jquery-1.8.3.min.js"></script>
+<script src="https://raw.github.com/OscarGodson/jKey/master/jquery.jkey.min.js"></script>
+<!---->
+</head>
+
+<body>
+<center>
+<canvas id="game" width="800" height="600" style="border:1px solid #000000; margin-top: 50px">
+</center>
+<script>
+$(function () {	
+	// CANVAS
+	canvas = $("canvas")[0]
+	ctx = canvas.getContext("2d")
+	
+	// ENUMS
+	// Lauretta's states
+	stateEnum = {
+		FALLING: 0,
+		JUMPING: 1,
+		LANDED: 2,
+		CRASHED: 3,
+		DEAD: 4,
+	}
+	
+	// Key codes
+	KeyEnum = {
+		A: 65, B: 66, C: 67, D: 68, E: 69, F: 70, G: 71, H: 72, I: 73, J: 74, K: 75, L: 76, M: 77, N: 78, O: 79, P: 80, Q: 81, R: 82, S: 83, T: 84, U: 85, V: 86, W: 87, X: 88, Y: 89, Z: 90,
+		/* START NUMBER KEYS */		N0: 48, N1: 49, N2: 50, N3: 51, N4: 52, N5: 53, N6: 54, N7: 55, N8: 56, N9: 57,
+		/* START THE F KEYS */		F1: 112, F2: 113, F3: 114, F4: 115, F5: 116, F6: 117, F7: 118, F8: 119, F9: 120, F10: 121, F11: 122, F12: 123, 		/* START THE MODIFIER KEYS */		SHIFT: 16, CTRL: 17, CONTROL: 17, ALT: 18, 		/* MISC. KEYS */		BACKSPACE: 8, ENTER: 13, SPACE: 32, SPACEBAR: 32, ESC: 27, ESCAPE: 27, TAB: 9, CAPSLOCK: 20, CAPSLK: 20, WINDOWS: 91, INSERT: 45, HOME: 36, END: 35, PGUP: 33, PAGEUP: 33, PGDN: 34, PAGEDOWN: 34,
+		/* ARROW KEYS */		LEFT: 37, UP: 38, RIGHT: 39, DOWN: 40
+	}
+	
+	function launch() {
+		Game.init()
+	}
+	
+	// STATIC OBJECT - GAME
+	Game = {
+		//                     x, y, vx,vy, w,  h,  g,   m
+		lauretta: new Lauretta(0, 20, 3, 0, 35, 70, 1.5, 50),
+		collidable: [],
+		
+		init: function () {
+			Game.drawFrame()
+			new Plateform(20, 250, 300, 30)
+			/new Plateform(100, 500, 650, 30)
+			new Plateform(900, 500, 1400, 30)
+			
+			var last = 0
+			for(var i=0, n=6, w=40; i<n; i++) {
+				new Plateform(1200+i*w, 470-i*30, (n-i)*w*2, 30)
+				last = 1200+n*w*2+300
+			}
+			
+			new Plateform(last, 200, 1000, 330)
+			
+		},
+		
+		// -- MAIN LOOP --
+		drawFrame: function () {
+			ctx.clearRect(0, 0, canvas.width , canvas.height)
+			
+			Game.lauretta.computePosition()
+			Game.lauretta.draw()
+			
+			for(var i=0,len=Game.collidable.length; i<len; i++){
+				Game.collidable[i].moveBy(Game.lauretta.vx, 0)
+				Game.collidable[i].draw()
+				//console.log(Game.lauretta.x, Game.collidable[i].left)
+			}
+			
+			// Loop!
+			requestAnimFrame(Game.drawFrame)
+		},
+	}
+	
+	// OBJECT - LAURETTA
+	function Lauretta(x, y, vx, vy, w, h, g, m) {
+		this.x = x // Negative position of the background
+		this.y = y
+		this.vx = vx
+		this.vy = vy
+		this.w = w // width
+		this.h = h // height
+		this.g = g // gravity
+		
+		this.margin = m // Margin form the frame
+		
+		this.state = stateEnum.FALLING
+		// TODO: Load an image
+	}
+	
+	Lauretta.prototype.computePosition = function () {
+		this.vy = 0.5*this.g + this.vy
+		this.y = this.vy + this.y
+		this.x = this.vx + this.x
+		
+		// Collisions
+		if(this.state !== stateEnum.CRASHED) {
+			if(this.state !== stateEnum.JUMPING) {
+				this.state = stateEnum.FALLING
+			}
+			for(var i=0, len=Game.collidable.length; i<len; i++) {
+				this.collide(Game.collidable[i])
+			}
+		}
+	}
+	
+	Lauretta.prototype.collide = function (obj) {
+		var m = this.margin
+		var w = this.w
+		var h = this.h
+		var y = this.y
+		
+		
+		// X-axis
+		if(m+w >= obj.left && m < obj.right) {
+			// Front
+			if(y+h/2 > obj.top && y+h/2 < obj.bottom) {
+				this.state = stateEnum.CRASHED
+				console.log("Game over!") // TODO: Make a real Game Over or something.
+				//alert("Game over!") // TODO: Make a real Game Over or something.
+			}
+			
+			else if(this.vy >= 0) { // Feet
+				if(y+h > obj.top && y+h <= obj.bottom) {
+					this.y = obj.top-h
+					//this.vy *= -0.3 // TODO: Check if it doesn't fuck up the game (And it does)
+					this.vy = 0
+					this.state = stateEnum.LANDED
+				}
+			}
+			
+			else { // Head
+				if(y >= obj.top && y < obj.bottom) {
+					this.y = obj.bottom+h
+					this.vy = 0.5 // Small spring effect
+				}
+			}
+		}
+	}
+	
+	Lauretta.prototype.draw = function () {
+		ctx.save()
+		ctx.translate(50, this.y)
+		ctx.fillStyle="#440099" // TODO: show a preloaded image
+		ctx.fillRect(0, 0, this.w, this.h)
+		ctx.restore()
+	}
+	
+	// OBJECT - COLLIDABLE (ABSTRACT)
+	function Collidable(x, y, w, h) {
+		this.x = x
+		this.y = y
+		this.w = w
+		this.h = h
+		
+		this.top = y
+		this.bottom = y+h
+		this.left = x
+		this.right = x+w
+		
+		this.id = Game.collidable.length
+		
+		Game.collidable.push(this)
+	}
+	
+	Collidable.prototype.moveTo = function (x, y) {
+		this.x = -x
+		this.y = y
+		this.top = y
+		this.bottom = y+this.h
+		this.left = -x
+		this.right = -x-this.w
+	}
+	
+	Collidable.prototype.moveBy = function (dx, dy) {
+		this.x -= dx
+		this.y += dy
+		this.top += dy
+		this.bottom += dy
+		this.left -= dx
+		this.right -= dx
+	}
+	
+	Collidable.prototype.draw = function () {
+		throw new Error("Abstract method. Must be implemented")
+	}
+	
+	Collidable.prototype.destroy = function () {
+		// FIXME: This could me more efficient (ask Sacha)
+		
+		Game.collidable.splice(this.id, 1)
+		
+		for(var i=this.id, len=Game.collidable.length; i<len; i++) {
+			Game.collidable[i].id--
+		}
+		
+	}
+	
+	// OBJECT - PLATEFORM - (Inherited from Collidable)
+	//Plateform.prototype = new Collidable(); // Inheritance in JS (doesn't as I want)
+	Plateform.prototype = Collidable.prototype // Inheritance in JS
+	Plateform.prototype.super = Plateform.prototype.constructor // Super
+	Plateform.prototype.constructor = Plateform // New constructor
+	
+	function Plateform(x, y, w, h) {
+		this.super(x, y, w, h)
+	}
+	
+	Plateform.prototype.draw = function () {
+		ctx.save()
+		ctx.translate(this.x, this.y)
+		ctx.fillStyle="#005500" // TODO: show a preloaded image
+		ctx.fillRect(0, 0, this.w, this.h)
+		ctx.restore()
+	}
+	
+	// Request Animation Frame (better than setInterval)
+	window.requestAnimFrame = (function () {
+		return  window.requestAnimationFrame	|| 
+		window.webkitRequestAnimationFrame		|| 
+		window.mozRequestAnimationFrame			|| 
+		window.oRequestAnimationFrame			|| 
+		window.msRequestAnimationFrame			|| 
+		function( callback ){
+			window.setTimeout(callback, 1000 / 60)
+		}
+    })()
+	
+	// OBJECT - CONTROLLER (STATIC )
+	Controller = {
+		keyIsDown: [],
+		
+		// Add a new control. up is optional.
+		// It avoids key repetitions
+		add: function (key, down, up) {
+			$(document).keydown(function(e) {
+				if(e.keyCode === key && !Controller.keyIsDown[key]) {
+					down()
+					Controller.keyIsDown[key] = true
+				}
+			})
+			
+			if(up) {
+				$(document).keyup(function(e) {
+					if(e.keyCode === key)
+						up()
+						Controller.keyIsDown[key] = false
+				})
+			}
+		},
+	}
+	
+	Controller.add(KeyEnum.UP,
+		function () {
+			if(Game.lauretta.state === stateEnum.LANDED) {
+				Game.lauretta.vy -= 15
+				Game.lauretta.g /= 1.5
+				Game.lauretta.state = stateEnum.JUMPING
+			}
+		},
+		function () {
+			if(Game.lauretta.state === stateEnum.JUMPING) {
+				Game.lauretta.g *= 1.5
+				Game.lauretta.state = stateEnum.FALLING
+			}
+		}
+	)
+	
+	launch()
+})
+</script>
+</body>
