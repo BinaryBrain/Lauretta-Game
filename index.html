@@ -20,7 +20,7 @@ $(function () {
 	
 	// ENUMS
 	// Lauretta's states
-	stateEnum = {
+	StateEnum = {
 		FALLING: 0,
 		JUMPING: 1,
 		LANDED: 2,
@@ -30,10 +30,18 @@ $(function () {
 	
 	// Key codes
 	KeyEnum = {
+		/* Alphabetic keys */
 		A: 65, B: 66, C: 67, D: 68, E: 69, F: 70, G: 71, H: 72, I: 73, J: 74, K: 75, L: 76, M: 77, N: 78, O: 79, P: 80, Q: 81, R: 82, S: 83, T: 84, U: 85, V: 86, W: 87, X: 88, Y: 89, Z: 90,
-		/* START NUMBER KEYS */		N0: 48, N1: 49, N2: 50, N3: 51, N4: 52, N5: 53, N6: 54, N7: 55, N8: 56, N9: 57,
-		/* START THE F KEYS */		F1: 112, F2: 113, F3: 114, F4: 115, F5: 116, F6: 117, F7: 118, F8: 119, F9: 120, F10: 121, F11: 122, F12: 123, 		/* START THE MODIFIER KEYS */		SHIFT: 16, CTRL: 17, CONTROL: 17, ALT: 18, 		/* MISC. KEYS */		BACKSPACE: 8, ENTER: 13, SPACE: 32, SPACEBAR: 32, ESC: 27, ESCAPE: 27, TAB: 9, CAPSLOCK: 20, CAPSLK: 20, WINDOWS: 91, INSERT: 45, HOME: 36, END: 35, PGUP: 33, PAGEUP: 33, PGDN: 34, PAGEDOWN: 34,
-		/* ARROW KEYS */		LEFT: 37, UP: 38, RIGHT: 39, DOWN: 40
+		/* Numeric keys */
+		N0: 48, N1: 49, N2: 50, N3: 51, N4: 52, N5: 53, N6: 54, N7: 55, N8: 56, N9: 57,
+		/* F keys */
+		F1: 112, F2: 113, F3: 114, F4: 115, F5: 116, F6: 117, F7: 118, F8: 119, F9: 120, F10: 121, F11: 122, F12: 123, 
+		/* Modifier keys */
+		SHIFT: 16, CTRL: 17, CONTROL: 17, ALT: 18, 
+		/* Misc keys */
+		BACKSPACE: 8, ENTER: 13, SPACE: 32, SPACEBAR: 32, ESC: 27, ESCAPE: 27, TAB: 9, CAPSLOCK: 20, CAPSLK: 20, WINDOWS: 91, INSERT: 45, HOME: 36, END: 35, PGUP: 33, PAGEUP: 33, PGDN: 34, PAGEDOWN: 34,
+		/* Arrow keys */
+		LEFT: 37, UP: 38, RIGHT: 39, DOWN: 40
 	}
 	
 	function launch() {
@@ -43,13 +51,24 @@ $(function () {
 	// STATIC OBJECT - GAME
 	Game = {
 		//                     x, y, vx,vy, w,  h,  g,   m
-		lauretta: new Lauretta(0, 20, 3, 0, 35, 70, 1.5, 50),
+		lauretta: new Lauretta(0, 0, 3, 0, 35, 70, 1.5, 50),
 		collidable: [],
+		
+		Camera: {
+			marginLeft: 50,
+			x: 0,
+			y: 0,
+
+			computePosition: function () {
+				Game.Camera.x = Game.lauretta.x - Game.Camera.marginLeft
+				Game.Camera.y = Game.lauretta.y - (canvas.height/2 - Game.lauretta.h/2) // TODO: Make it in a cleaner way
+			},
+		},
 		
 		init: function () {
 			Game.drawFrame()
 			new Plateform(20, 250, 300, 30)
-			/new Plateform(100, 500, 650, 30)
+			new Plateform(100, 500, 650, 30)
 			new Plateform(900, 500, 1400, 30)
 			
 			var last = 0
@@ -59,21 +78,26 @@ $(function () {
 			}
 			
 			new Plateform(last, 200, 1000, 330)
-			
 		},
 		
 		// -- MAIN LOOP --
 		drawFrame: function () {
-			ctx.clearRect(0, 0, canvas.width , canvas.height)
-			
+			// Computing
 			Game.lauretta.computePosition()
+			Game.Camera.computePosition()
+			
+			// Drawing
+			ctx.clearRect(0, 0, canvas.width , canvas.height)
+			ctx.save()
+			ctx.translate(-Game.Camera.x, -Game.Camera.y)
+			
 			Game.lauretta.draw()
 			
-			for(var i=0,len=Game.collidable.length; i<len; i++){
-				Game.collidable[i].moveBy(Game.lauretta.vx, 0)
+			for(var i=0,len=Game.collidable.length; i<len; i++) {
 				Game.collidable[i].draw()
-				//console.log(Game.lauretta.x, Game.collidable[i].left)
 			}
+			
+			ctx.restore()
 			
 			// Loop!
 			requestAnimFrame(Game.drawFrame)
@@ -90,9 +114,7 @@ $(function () {
 		this.h = h // height
 		this.g = g // gravity
 		
-		this.margin = m // Margin form the frame
-		
-		this.state = stateEnum.FALLING
+		this.state = StateEnum.FALLING
 		// TODO: Load an image
 	}
 	
@@ -102,9 +124,9 @@ $(function () {
 		this.x = this.vx + this.x
 		
 		// Collisions
-		if(this.state !== stateEnum.CRASHED) {
-			if(this.state !== stateEnum.JUMPING) {
-				this.state = stateEnum.FALLING
+		if(this.state !== StateEnum.CRASHED) {
+			if(this.state !== StateEnum.JUMPING) {
+				this.state = StateEnum.FALLING
 			}
 			for(var i=0, len=Game.collidable.length; i<len; i++) {
 				this.collide(Game.collidable[i])
@@ -113,17 +135,16 @@ $(function () {
 	}
 	
 	Lauretta.prototype.collide = function (obj) {
-		var m = this.margin
+		var x = this.x
 		var w = this.w
 		var h = this.h
 		var y = this.y
 		
-		
 		// X-axis
-		if(m+w >= obj.left && m < obj.right) {
+		if(x+w >= obj.left && x < obj.right) {
 			// Front
 			if(y+h/2 > obj.top && y+h/2 < obj.bottom) {
-				this.state = stateEnum.CRASHED
+				this.state = StateEnum.CRASHED
 				console.log("Game over!") // TODO: Make a real Game Over or something.
 				//alert("Game over!") // TODO: Make a real Game Over or something.
 			}
@@ -133,7 +154,7 @@ $(function () {
 					this.y = obj.top-h
 					//this.vy *= -0.3 // TODO: Check if it doesn't fuck up the game (And it does)
 					this.vy = 0
-					this.state = stateEnum.LANDED
+					this.state = StateEnum.LANDED
 				}
 			}
 			
@@ -148,7 +169,7 @@ $(function () {
 	
 	Lauretta.prototype.draw = function () {
 		ctx.save()
-		ctx.translate(50, this.y)
+		ctx.translate(this.x, this.y)
 		ctx.fillStyle="#440099" // TODO: show a preloaded image
 		ctx.fillRect(0, 0, this.w, this.h)
 		ctx.restore()
@@ -172,21 +193,21 @@ $(function () {
 	}
 	
 	Collidable.prototype.moveTo = function (x, y) {
-		this.x = -x
+		this.x = x
 		this.y = y
 		this.top = y
 		this.bottom = y+this.h
-		this.left = -x
-		this.right = -x-this.w
+		this.left = x
+		this.right = x+this.w
 	}
 	
 	Collidable.prototype.moveBy = function (dx, dy) {
-		this.x -= dx
+		this.x += dx
 		this.y += dy
 		this.top += dy
 		this.bottom += dy
-		this.left -= dx
-		this.right -= dx
+		this.left += dx
+		this.right += dx
 	}
 	
 	Collidable.prototype.draw = function () {
@@ -260,16 +281,16 @@ $(function () {
 	
 	Controller.add(KeyEnum.UP,
 		function () {
-			if(Game.lauretta.state === stateEnum.LANDED) {
+			if(Game.lauretta.state === StateEnum.LANDED) {
 				Game.lauretta.vy -= 15
 				Game.lauretta.g /= 1.5
-				Game.lauretta.state = stateEnum.JUMPING
+				Game.lauretta.state = StateEnum.JUMPING
 			}
 		},
 		function () {
-			if(Game.lauretta.state === stateEnum.JUMPING) {
+			if(Game.lauretta.state === StateEnum.JUMPING) {
 				Game.lauretta.g *= 1.5
-				Game.lauretta.state = stateEnum.FALLING
+				Game.lauretta.state = StateEnum.FALLING
 			}
 		}
 	)
