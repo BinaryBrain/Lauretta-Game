@@ -45,7 +45,8 @@ $(function () {
 	}
 	
 	function launch() {
-		Game.init()
+		var imgs = ['test.png','test2.png'];
+		Game.loadImages(imgs,Game.init);
 	}
 	
 	// STATIC OBJECT - GAME
@@ -64,6 +65,45 @@ $(function () {
 				Game.Camera.y = Game.lauretta.y - (canvas.height/2 - Game.lauretta.h/2) // TODO: Make it in a cleaner way
 			},
 		},
+		
+		loadImages : function (imgs,callback) {
+			nImages = 0;
+			$(imgs).each(function(){
+				(new Image()).src = this;
+				nImages++;
+				var percent = nImages/imgs.length;
+				console.log(percent*100+' %');
+			
+				var canWidth = $('#game').width();
+				var canHeight = $('#game').height();
+				var barWidth = 200;
+				var barHeight = 20;
+				
+				ctx.beginPath();
+				ctx.rect(canWidth/2 - barWidth/2, canHeight/2 - barHeight/2, barWidth, barHeight);
+				ctx.strokeStyle = "black";
+				ctx.stroke();
+				
+				ctx.beginPath();
+				ctx.rect(canWidth/2 - barWidth/2, canHeight/2 - barHeight/2, percent * barWidth, barHeight);
+				ctx.fillStyle = "#8ED6FF";
+				ctx.fill();
+				
+				ctx.fillStyle = "black";
+				ctx.fillText(percent*100+' %', canWidth/2 - 8, canHeight/2 + 2);
+				
+				
+				//alert("stop"); // only to check if the bar is working, remove at the end
+				
+				if(nImages==imgs.length){
+					//alert('Images loaded'); // same here
+					console.log('Done loading.');
+					callback();
+				}
+			});	
+			
+		},
+		
 		
 		init: function () {
 			Game.drawFrame()
