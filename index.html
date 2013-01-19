@@ -78,7 +78,7 @@ $(function () {
 			marginVer: 150,
 			x: 0,
 			y: 0,
-
+			
 			computePosition: function () {
 				Game.Camera.x = Game.lauretta.x - Game.Camera.marginLeft
 				if(Game.lauretta.y - Game.Camera.y < Game.Camera.marginVer) {
@@ -150,20 +150,20 @@ $(function () {
 			}
 			
 			new Plateform(last, 200, 1000, 330)*/
-
+			
 			// TODO: Do it in a better way.
 			for(var i=0, w, tot=0; i<100; i++) {
 				w = 300+Math.random()*800
 				rx = Math.random()*300
 				
-				new Plateform(-100+tot+200*i+rx, 200+Math.random()*200, w, 100)
+				new Plateform(-100+tot+100*i+rx, 200+Math.random()*200, w, 100)
 				tot += w+rx
 			}
 			//new Plateform(1300, 500, 1000, 100)
-
+			
 			Game.Sound.music["wolf"] = document.getElementById("wolf")
 			Game.Sound.music["hips"] = document.getElementById("hips")
-
+			
 			Game.Sound.music["hips"].play()
 		},
 		
@@ -199,8 +199,16 @@ $(function () {
 			ctx.restore()
 			
 			// Loop!
-			requestAnimFrame(Game.drawFrame)
+			if(Game.lauretta.state !== StateEnum.CRASHED)
+				requestAnimFrame(Game.drawFrame)
+			else
+				Game.over()
 		},
+
+		over: function () {
+			Game.Sound.music["hips"].pause()
+			Game.Sound.music["wolf"].play()
+		}
 	}
 	
 	// OBJECT - LAURETTA
@@ -244,7 +252,7 @@ $(function () {
 		// X-axis
 		if(x+w >= obj.left && x < obj.right) {
 			// Front
-			if(y+h/2 > obj.top && y+h/2 < obj.bottom) {
+			if(y+h/2 > obj.top && (y+h/2 < obj.bottom || true)) {
 				this.state = StateEnum.CRASHED
 				console.log("Game over!") // TODO: Make a real Game Over or something.
 				//alert("Game over!") // TODO: Make a real Game Over or something.
