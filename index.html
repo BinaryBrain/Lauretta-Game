@@ -144,19 +144,13 @@ $(function () {
 			}
 		},
 		
-		
 		init: function () {
 			Game.drawFrame()
 			
 			// TODO: Do it in a better way.
-			for(var i=0, w, tot=0; i<10; i++) {
-				w = 300+Math.random()*800
-				rx = Math.random()*300
-				
-				new Plateform(-100+tot+100*i+rx, 200+Math.random()*200, w, 100,tot)
-				tot += w+rx
-			}
-			//new Plateform(1300, 500, 1000, 100)
+			new Plateform(-100, 300, 1000, 100)
+			new Plateform(1150, 400, 700, 100)
+			new Plateform(1900, 250, 800, 100)
 			
 			Game.Sound.music["wolf"] = document.getElementById("wolf")
 			Game.Sound.music["hips"] = document.getElementById("hips")
@@ -167,6 +161,21 @@ $(function () {
 		// -- MAIN LOOP --
 		drawFrame: function () {
 			// COMPUTING
+			for(var i=0,len=Game.collidable.length; i<len; i++) {
+				if(Game.collidable[i].right < Game.Camera.x) {
+					var x = Game.collidable[Game.collidable.length-1].right
+					var y = Game.collidable[Game.collidable.length-1].top
+
+					Game.collidable[i].destroy()
+					
+					var w = 300+Math.random()*800
+					var gapX = Math.random()*250+100
+					var gapY = Math.random()*200-100
+					
+					new Plateform(gapX+x, y+gapY, w, 100)
+				}
+			}
+			
 			Game.lauretta.computePosition()
 			Game.Camera.computePosition()
 			Game.score = Math.floor(Game.lauretta.x/5)
@@ -191,23 +200,9 @@ $(function () {
 			
 			ctx.save()
 			ctx.translate(-Game.Camera.x, -Game.Camera.y)
-			
-			for(var i=0,len=Game.collidable.length; i<len; i++) {
-
-				Game.collidable[i].draw()
-				//console.log("size: "+len)
 				
-				if(Game.collidable[i].right < Game.Camera.x){
-					Game.collidable[i].destroy();
-					console.log(i+" deleted");
-					w = 300+Math.random()*800
-					rx = Math.random()*300					
-					tot = Game.collidable[Game.collidable.length-1]
-					tot+= w+rx
-					
-					new Plateform(-100+tot+100*i+rx, 200+Math.random()*200, w, 100, tot)
-					
-				}
+			for(var i=0,len=Game.collidable.length; i<len; i++) {
+				Game.collidable[i].draw()
 			}
 			
 			Game.lauretta.draw()
@@ -364,13 +359,11 @@ $(function () {
 	
 	Collidable.prototype.destroy = function () {
 		// FIXME: This could me more efficient (ask Sacha)
-		
 		Game.collidable.splice(this.id, 1)
 		
 		for(var i=this.id, len=Game.collidable.length; i<len; i++) {
 			Game.collidable[i].id--
 		}
-		
 	}
 	
 	// OBJECT - PLATEFORM - (Inherited from Collidable)
