@@ -45,15 +45,18 @@ $(function () {
 	}
 	
 	function launch() {
-		var imgs = ['test.png','test2.png'];
-		Game.loadImages(imgs,Game.init);
+		var imgs = ['test.png', 'test2.png'];
+		Game.loadImages(imgs, Game.init);
 	}
 	
 	// STATIC OBJECT - GAME
 	Game = {
 		//                     x, y, vx,vy, w,  h,  g,   m
 		lauretta: new Lauretta(0, 0, 3, 0, 35, 70, 1.5, 50),
+		
 		collidable: [],
+
+		images: {},
 		
 		Camera: {
 			marginLeft: 50,
@@ -66,42 +69,48 @@ $(function () {
 			},
 		},
 		
-		loadImages : function (imgs,callback) {
-			nImages = 0;
-			$(imgs).each(function(){
-				(new Image()).src = this;
-				nImages++;
-				var percent = nImages/imgs.length;
-				console.log(percent*100+' %');
+		loadImages: function (imgs, callback) {
+			var nImages = 0
+			var names = []
 			
-				var canWidth = $('#game').width();
-				var canHeight = $('#game').height();
-				var barWidth = 200;
-				var barHeight = 20;
+			for(var i=0, len=imgs.length; i<len; i++) {
+				names[i] = imgs[i].slice(0, -4)
 				
-				ctx.beginPath();
-				ctx.rect(canWidth/2 - barWidth/2, canHeight/2 - barHeight/2, barWidth, barHeight);
-				ctx.strokeStyle = "black";
-				ctx.stroke();
+				Game.images[names[i]] = new Image()
+				Game.images[names[i]].src = "img/"+imgs[i]
 				
-				ctx.beginPath();
-				ctx.rect(canWidth/2 - barWidth/2, canHeight/2 - barHeight/2, percent * barWidth, barHeight);
-				ctx.fillStyle = "#8ED6FF";
-				ctx.fill();
-				
-				ctx.fillStyle = "black";
-				ctx.fillText(percent*100+' %', canWidth/2 - 8, canHeight/2 + 2);
-				
-				
-				//alert("stop"); // only to check if the bar is working, remove at the end
-				
-				if(nImages==imgs.length){
-					//alert('Images loaded'); // same here
-					console.log('Done loading.');
-					callback();
+				Game.images[names[i]].onload = function () {
+					var percent = nImages/imgs.length
+					
+					var canWidth = canvas.width
+					var canHeight = canvas.height
+					var barWidth = 200
+					var barHeight = 20
+					
+					ctx.beginPath();
+					ctx.rect(canWidth/2 - barWidth/2, canHeight/2 - barHeight/2, barWidth, barHeight)
+					ctx.strokeStyle = "black"
+					ctx.stroke()
+					
+					ctx.beginPath()
+					ctx.rect(canWidth/2 - barWidth/2, canHeight/2 - barHeight/2, percent * barWidth, barHeight)
+					ctx.fillStyle = "#8ED6FF"
+					ctx.fill()
+					
+					ctx.fillStyle = "black"
+					ctx.fillText(percent*100+' %', canWidth/2 - 8, canHeight/2 + 2)
+					
+					nImages++
+					
+					// alert("stop"); // only to check if the bar is working, remove at the end
+					
+					if(nImages == imgs.length) {
+						console.log('Done loading.')
+						
+						callback()
+					}
 				}
-			});	
-			
+			}
 		},
 		
 		
