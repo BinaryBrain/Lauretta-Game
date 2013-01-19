@@ -143,11 +143,11 @@ $(function () {
 			Game.drawFrame()
 			
 			// TODO: Do it in a better way.
-			for(var i=0, w, tot=0; i<100; i++) {
+			for(var i=0, w, tot=0; i<10; i++) {
 				w = 300+Math.random()*800
 				rx = Math.random()*300
 				
-				new Plateform(-100+tot+100*i+rx, 200+Math.random()*200, w, 100)
+				new Plateform(-100+tot+100*i+rx, 200+Math.random()*200, w, 100,tot)
 				tot += w+rx
 			}
 			//new Plateform(1300, 500, 1000, 100)
@@ -182,7 +182,21 @@ $(function () {
 			ctx.translate(-Game.Camera.x, -Game.Camera.y)
 			
 			for(var i=0,len=Game.collidable.length; i<len; i++) {
+
 				Game.collidable[i].draw()
+				//console.log("size: "+len)
+				
+				if(Game.collidable[i].right < Game.Camera.x){
+					//Game.collidable[i].destroy();
+					//console.log(i+" deleted");
+					w = 300+Math.random()*800
+					rx = Math.random()*300					
+					tot = Game.collidable[Game.collidable.length-1]
+					tot+= w+rx
+					
+					new Plateform(-100+tot+100*i+rx, 200+Math.random()*200, w, 100, tot)
+					
+				}
 			}
 			
 			Game.lauretta.draw()
@@ -281,11 +295,12 @@ $(function () {
 	}
 	
 	// OBJECT - COLLIDABLE (ABSTRACT)
-	function Collidable(x, y, w, h) {
+	function Collidable(x, y, w, h, tot) {
 		this.x = x
 		this.y = y
 		this.w = w
 		this.h = h
+		this.tot = tot
 		
 		this.top = y
 		this.bottom = y+h
