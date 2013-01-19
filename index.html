@@ -9,14 +9,22 @@
 </head>
 
 <body style="background: #00406D;">
+<audio id="hips" src="music/hips.wav" type="audio/wav" loop="loop"></audio>
+<audio id="wolf" src="music/wolf.wav" type="audio/wav" loop="loop"></audio>
 <center>
 <canvas id="game" width="800" height="600" style="border:1px solid #000000; margin-top: 50px">
 </center>
 <script>
-$(function () {	
+$(function () {
 	// CANVAS
 	canvas = $("canvas")[0]
 	ctx = canvas.getContext("2d")
+	
+	// CONFIG
+	Config = {
+		g: 1.5,
+		g2: 1
+	}
 	
 	// ENUMS
 	// Lauretta's states
@@ -52,11 +60,16 @@ $(function () {
 	// STATIC OBJECT - GAME
 	Game = {
 		//                     x, y, vx,vy, w,  h,  g,   m
-		lauretta: new Lauretta(0, 0, 3, 0, 35, 70, 1.5, 50),
+		lauretta: new Lauretta(0, 0, 3, 0, 35, 70, Config.g, 50),
 		
 		collidable: [],
 
 		images: {},
+
+		Sound: {
+			muted: false,
+			music: {},
+		},
 		
 		Camera: {
 			marginLeft: 50,
@@ -136,9 +149,20 @@ $(function () {
 			
 			new Plateform(last, 200, 1000, 330)*/
 
-			new Plateform(20, 250, 300, 100)
-			new Plateform(200, 500, 1000, 100)
-			new Plateform(1300, 500, 1000, 100)
+			// TODO: Do it in a better way.
+			for(var i=0, w, tot=0; i<100; i++) {
+				w = 300+Math.random()*800
+				rx = Math.random()*300
+				
+				new Plateform(-100+tot+200*i+rx, 200+Math.random()*200, w, 100)
+				tot += w+rx
+			}
+			//new Plateform(1300, 500, 1000, 100)
+
+			Game.Sound.music["wolf"] = document.getElementById("wolf")
+			Game.Sound.music["hips"] = document.getElementById("hips")
+
+			Game.Sound.music["hips"].play()
 		},
 		
 		// -- MAIN LOOP --
@@ -183,6 +207,8 @@ $(function () {
 	Lauretta.prototype.computePosition = function () {
 		this.vy = 0.5*this.g + this.vy
 		this.y = this.vy + this.y
+
+		this.vx = -((20*10)/((this.x/700)+13))+22
 		this.x = this.vx + this.x
 		
 		// Collisions
@@ -337,13 +363,11 @@ $(function () {
 				}
 			})
 			
-			if(up) {
-				$(document).keyup(function(e) {
-					if(e.keyCode === key)
-						up()
-						Controller.keyIsDown[key] = false
-				})
-			}
+			$(document).keyup(function(e) {
+				if(e.keyCode === key)
+					if(up) up()
+					Controller.keyIsDown[key] = false
+			})
 		},
 	}
 	
@@ -351,14 +375,27 @@ $(function () {
 		function () {
 			if(Game.lauretta.state === StateEnum.LANDED) {
 				Game.lauretta.vy -= 15
-				Game.lauretta.g /= 1.5
+				Game.lauretta.g = Config.g2
 				Game.lauretta.state = StateEnum.JUMPING
 			}
 		},
 		function () {
 			if(Game.lauretta.state === StateEnum.JUMPING) {
-				Game.lauretta.g *= 1.5
+				Game.lauretta.g = Config.g
 				Game.lauretta.state = StateEnum.FALLING
+			}
+		}
+	)
+	
+	Controller.add(KeyEnum.M,
+		function () {
+			if(Game.Sound.muted) {
+				Game.Sound.music["hips"].play()
+				Game.Sound.muted = false
+			}
+			else {
+				Game.Sound.music["hips"].pause()
+				Game.Sound.muted = true
 			}
 		}
 	)
