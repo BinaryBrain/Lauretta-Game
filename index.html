@@ -62,6 +62,8 @@ $(function () {
 		//                     x, y, vx,vy, w,  h,  g,   m
 		lauretta: new Lauretta(0, 0, 3, 0, 35, 70, Config.g, 50),
 		
+		score: 0,
+		
 		collidable: [],
 
 		images: {},
@@ -167,13 +169,24 @@ $(function () {
 		
 		// -- MAIN LOOP --
 		drawFrame: function () {
-			// Computing
+			// COMPUTING
 			Game.lauretta.computePosition()
 			Game.Camera.computePosition()
+			Game.score = Math.floor(Game.lauretta.x)
 			
-			// Drawing
+			// DRAWING
 			ctx.clearRect(0, 0, canvas.width , canvas.height)
+			// Background
 			ctx.drawImage(Game.images["bg"], 0, 0)
+			// score
+			var fontSize = (18+Game.score/2000)
+			if(fontSize > 90) fontSize = 90
+			ctx.font = fontSize+"pt monospace";
+			ctx.textAlign = "center"
+			ctx.textBaseline = "top"
+			ctx.fillStyle = "white"
+			ctx.fillText(Game.score, canvas.width/2, 50)
+			
 			ctx.save()
 			ctx.translate(-Game.Camera.x, -Game.Camera.y)
 			
@@ -360,18 +373,21 @@ $(function () {
 				if(e.keyCode === key && !Controller.keyIsDown[key]) {
 					down()
 					Controller.keyIsDown[key] = true
+					return false
 				}
 			})
 			
 			$(document).keyup(function(e) {
-				if(e.keyCode === key)
+				if(e.keyCode === key) {
 					if(up) up()
 					Controller.keyIsDown[key] = false
+					return false
+				}
 			})
 		},
 	}
 	
-	Controller.add(KeyEnum.UP,
+	Controller.add(KeyEnum.SPACE,
 		function () {
 			if(Game.lauretta.state === StateEnum.LANDED) {
 				Game.lauretta.vy -= 15
