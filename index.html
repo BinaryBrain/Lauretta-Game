@@ -8,7 +8,7 @@
 <!---->
 </head>
 
-<body>
+<body style="background: #00406D;">
 <center>
 <canvas id="game" width="800" height="600" style="border:1px solid #000000; margin-top: 50px">
 </center>
@@ -45,7 +45,7 @@ $(function () {
 	}
 	
 	function launch() {
-		var imgs = ['test.png', 'test2.png'];
+		var imgs = ['bg.png', 'books.png'];
 		Game.loadImages(imgs, Game.init);
 	}
 	
@@ -60,12 +60,18 @@ $(function () {
 		
 		Camera: {
 			marginLeft: 50,
+			marginVer: 150,
 			x: 0,
 			y: 0,
 
 			computePosition: function () {
 				Game.Camera.x = Game.lauretta.x - Game.Camera.marginLeft
-				Game.Camera.y = Game.lauretta.y - (canvas.height/2 - Game.lauretta.h/2) // TODO: Make it in a cleaner way
+				if(Game.lauretta.y - Game.Camera.y < Game.Camera.marginVer) {
+					Game.Camera.y = Game.lauretta.y - Game.Camera.marginVer
+				}
+				else if(Game.lauretta.y + Game.lauretta.h - Game.Camera.y > canvas.height - Game.Camera.marginVer) {
+					Game.Camera.y = Game.lauretta.y+Game.lauretta.h - (canvas.height - Game.Camera.marginVer)
+				}
 			},
 		},
 		
@@ -118,7 +124,7 @@ $(function () {
 		
 		init: function () {
 			Game.drawFrame()
-			new Plateform(20, 250, 300, 30)
+			/*new Plateform(20, 250, 300, 30)
 			new Plateform(100, 500, 650, 30)
 			new Plateform(900, 500, 1400, 30)
 			
@@ -128,7 +134,11 @@ $(function () {
 				last = 1200+n*w*2+300
 			}
 			
-			new Plateform(last, 200, 1000, 330)
+			new Plateform(last, 200, 1000, 330)*/
+
+			new Plateform(20, 250, 300, 100)
+			new Plateform(200, 500, 1000, 100)
+			new Plateform(1300, 500, 1000, 100)
 		},
 		
 		// -- MAIN LOOP --
@@ -139,6 +149,7 @@ $(function () {
 			
 			// Drawing
 			ctx.clearRect(0, 0, canvas.width , canvas.height)
+			ctx.drawImage(Game.images["bg"], 0, 0)
 			ctx.save()
 			ctx.translate(-Game.Camera.x, -Game.Camera.y)
 			
@@ -289,7 +300,13 @@ $(function () {
 	Plateform.prototype.draw = function () {
 		ctx.save()
 		ctx.translate(this.x, this.y)
-		ctx.fillStyle="#005500" // TODO: show a preloaded image
+
+		// create pattern
+    var ptrn = ctx.createPattern(Game.images["books"], 'repeat-x');
+    ctx.fillStyle = ptrn;
+    ctx.fillRect(0,0,150,150);
+
+		//ctx.fillStyle="#005500" // TODO: show a preloaded image
 		ctx.fillRect(0, 0, this.w, this.h)
 		ctx.restore()
 	}
