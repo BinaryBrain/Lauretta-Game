@@ -165,9 +165,9 @@ $(function () {
 
 					Game.collidable[i].destroy()
 					
-					var w = 300+Math.random()*800
+					var w = 1000+Math.random()*800-400
 					var gapX = Math.random()*250+100
-					var gapY = Math.random()*200-100
+					var gapY = Math.random()*300-150
 					
 					new Plateform(gapX+x, y+gapY, w, 100)
 				}
