@@ -59,7 +59,7 @@ $(function () {
 	}
 	
 	function launch() {
-		var imgs = ['bg.png', 'books.png', 'lauretta.png', 'space.png'];
+		var imgs = ['bg.png', 'books.png', 'lauretta.png', 'space.png', 'gameover.png'];
 		Game.loadImages(imgs, Game.init);
 	}
 	
@@ -198,8 +198,8 @@ $(function () {
 				//console.log("size: "+len)
 				
 				if(Game.collidable[i].right < Game.Camera.x){
-					//Game.collidable[i].destroy();
-					//console.log(i+" deleted");
+					Game.collidable[i].destroy();
+					console.log(i+" deleted");
 					w = 300+Math.random()*800
 					rx = Math.random()*300					
 					tot = Game.collidable[Game.collidable.length-1]
@@ -231,6 +231,17 @@ $(function () {
 		over: function () {
 			Game.Sound.music["hips"].pause()
 			Game.Sound.music["wolf"].play()
+			
+			ctx.fillStyle = "black"
+			ctx.fillRect(0, 0, canvas.width, canvas.height)
+			ctx.drawImage(Game.images["gameover"], canvas.width/2-92, 200)
+			
+			ctx.font = "20pt volter";
+			ctx.textAlign = "center"
+			ctx.textBaseline = "top"
+			
+			ctx.fillStyle = "white"
+			ctx.fillText("Score: "+Game.score, canvas.width/2, 350)
 		}
 	}
 	
@@ -301,10 +312,11 @@ $(function () {
 	Lauretta.prototype.draw = function () {
 		ctx.save()
 		ctx.translate(this.x, this.y+5)
-		if(this.state !== StateEnum.LANDING)
-			ctx.rotate((this.vy/2)/180*Math.PI)
-		//else if(this.state === StateEnum.FALLING || this.state === StateEnum.CRASHING)
-			//ctx.rotate((this.vy/2)/180*Math.PI)
+		if(this.state !== StateEnum.LANDING) {
+			var rot = (this.vy/2)
+			if(rot > 45) rot = 45
+			ctx.rotate(rot/180*Math.PI)
+		}
 		
 		ctx.drawImage(Game.images["lauretta"], 0, 0, this.w, this.h)
 		ctx.restore()
@@ -437,13 +449,15 @@ $(function () {
 	
 	Controller.add(KeyEnum.M,
 		function () {
-			if(Game.Sound.muted) {
-				Game.Sound.music["hips"].play()
-				Game.Sound.muted = false
-			}
-			else {
-				Game.Sound.music["hips"].pause()
-				Game.Sound.muted = true
+			if(Game.lauretta.state !== StateEnum.CRASHED) {
+				if(Game.Sound.muted) {
+					Game.Sound.music["hips"].play()
+					Game.Sound.muted = false
+				}
+				else {
+					Game.Sound.music["hips"].pause()
+					Game.Sound.muted = true
+				}
 			}
 		}
 	)
