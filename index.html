@@ -77,7 +77,6 @@ $(function () {
 				names[i] = imgs[i].slice(0, -4)
 				
 				Game.images[names[i]] = new Image()
-				Game.images[names[i]].src = "img/"+imgs[i]
 				
 				Game.images[names[i]].onload = function () {
 					var percent = nImages/imgs.length
@@ -110,6 +109,9 @@ $(function () {
 						callback()
 					}
 				}
+				
+				Game.images[names[i]].src = "img/"+imgs[i]
+				
 			}
 		},
 		
