@@ -53,14 +53,14 @@ $(function () {
 	}
 	
 	function launch() {
-		var imgs = ['bg.png', 'books.png'];
+		var imgs = ['bg.png', 'books.png', 'lauretta.png'];
 		Game.loadImages(imgs, Game.init);
 	}
 	
 	// STATIC OBJECT - GAME
 	Game = {
 		//                     x, y, vx,vy, w,  h,  g,   m
-		lauretta: new Lauretta(0, 0, 3, 0, 35, 70, Config.g, 50),
+		lauretta: new Lauretta(0, 0, 3, 0, 95, 86, Config.g, 50),
 		
 		score: 0,
 		
@@ -118,11 +118,11 @@ $(function () {
 					ctx.fill()
 					
 					ctx.fillStyle = "black"
-					ctx.fillText(percent*100+' %', canWidth/2 - 8, canHeight/2 + 2)
+					ctx.fillText(Math.round(percent*100)+' %', canWidth/2 - 8, canHeight/2 + 2)
 					
 					nImages++
 					
-					// alert("stop"); // only to check if the bar is working, remove at the end
+					//alert("stop"); // only to check if the bar is working, remove at the end
 					
 					if(nImages == imgs.length) {
 						console.log('Done loading.')
@@ -172,7 +172,7 @@ $(function () {
 			// COMPUTING
 			Game.lauretta.computePosition()
 			Game.Camera.computePosition()
-			Game.score = Math.floor(Game.lauretta.x)
+			Game.score = Math.floor(Game.lauretta.x/5)
 			
 			// DRAWING
 			ctx.clearRect(0, 0, canvas.width , canvas.height)
@@ -190,11 +190,11 @@ $(function () {
 			ctx.save()
 			ctx.translate(-Game.Camera.x, -Game.Camera.y)
 			
-			Game.lauretta.draw()
-			
 			for(var i=0,len=Game.collidable.length; i<len; i++) {
 				Game.collidable[i].draw()
 			}
+			
+			Game.lauretta.draw()
 			
 			ctx.restore()
 			
@@ -222,7 +222,6 @@ $(function () {
 		this.g = g // gravity
 		
 		this.state = StateEnum.FALLING
-		// TODO: Load an image
 	}
 	
 	Lauretta.prototype.computePosition = function () {
@@ -278,9 +277,8 @@ $(function () {
 	
 	Lauretta.prototype.draw = function () {
 		ctx.save()
-		ctx.translate(this.x, this.y)
-		ctx.fillStyle="#440099" // TODO: show a preloaded image
-		ctx.fillRect(0, 0, this.w, this.h)
+		ctx.translate(this.x, this.y+5)
+		ctx.drawImage(Game.images["lauretta"], 0, 0, this.w, this.h)
 		ctx.restore()
 	}
 	
