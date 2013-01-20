@@ -226,14 +226,17 @@ $(function () {
 			
 			ctx.fillStyle = "black"
 			ctx.fillRect(0, 0, canvas.width, canvas.height)
-			ctx.drawImage(Game.images["gameover"], canvas.width/2-92, 200)
+			ctx.drawImage(Game.images["gameover"], canvas.width/2-92, 150)
 			
 			ctx.font = "20pt volter";
 			ctx.textAlign = "center"
 			ctx.textBaseline = "top"
 			
 			ctx.fillStyle = "white"
-			ctx.fillText("Score: "+Game.score, canvas.width/2, 350)
+			ctx.fillText("Score: "+Game.score, canvas.width/2, 300)
+			
+			ctx.font = "16pt volter";
+			ctx.fillText("Press ENTER to try again", canvas.width/2, 500)
 		}
 	}
 	
@@ -448,6 +451,14 @@ $(function () {
 					Game.Sound.music["hips"].pause()
 					Game.Sound.muted = true
 				}
+			}
+		}
+	)
+
+	Controller.add(KeyEnum.ENTER,
+		function () {
+			if(Game.lauretta.state === StateEnum.CRASHED) {
+				document.location = document.location
 			}
 		}
 	)
